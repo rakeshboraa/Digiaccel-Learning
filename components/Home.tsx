@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -91,9 +90,7 @@ export default function Home() {
 
         console.error("Load data error:", err);
 
-        setError(
-          err instanceof Error ? err.message : "Unable to load tasks"
-        );
+        setError(err instanceof Error ? err.message : "Unable to load tasks");
       } finally {
         if (active) {
           setLoading(false);
@@ -117,9 +114,7 @@ export default function Home() {
     } catch (err) {
       console.error("Load tasks error:", err);
 
-      setError(
-        err instanceof Error ? err.message : "Unable to load tasks"
-      );
+      setError(err instanceof Error ? err.message : "Unable to load tasks");
     }
   }, []);
 
@@ -132,10 +127,7 @@ export default function Home() {
   }, []);
 
   const refreshData = useCallback(async () => {
-    await Promise.all([
-      loadTasks(),
-      loadWeeklySummary(),
-    ]);
+    await Promise.all([loadTasks(), loadWeeklySummary()]);
   }, [loadTasks, loadWeeklySummary]);
 
   const saveTask = useCallback(
@@ -148,25 +140,35 @@ export default function Home() {
 
       await refreshData();
     },
-    [editingTask, refreshData]
+    [editingTask, refreshData],
   );
 
   const toggleTask = useCallback(
     async (task: Task) => {
-      const status: TodoStatus = task.completed
-        ? "IN_PROGRESS"
-        : "COMPLETED";
+      const nextCompleted = !task.completed;
+      const status: TodoStatus = nextCompleted ? "COMPLETED" : "IN_PROGRESS";
+
+      setTasks((prev) =>
+        prev.map((t) =>
+          t.id === task.id ? { ...t, completed: nextCompleted } : t,
+        ),
+      );
 
       try {
+       
         await updateTodoStatus(task.id, status);
-        await refreshData();
+        void loadWeeklySummary();
       } catch (err) {
-        alert(
-          err instanceof Error ? err.message : "Unable to update status"
+        setTasks((prev) =>
+          prev.map((t) =>
+            t.id === task.id ? { ...t, completed: task.completed } : t,
+          ),
         );
+
+        alert(err instanceof Error ? err.message : "Unable to update status");
       }
     },
-    [refreshData]
+    [loadWeeklySummary],
   );
 
   const removeTask = useCallback((id: string) => {
@@ -181,17 +183,13 @@ export default function Home() {
 
       await deleteTodo(taskToDelete);
 
-      setTasks((prev) =>
-        prev.filter((task) => task.id !== taskToDelete)
-      );
+      setTasks((prev) => prev.filter((task) => task.id !== taskToDelete));
 
       setTaskToDelete(null);
 
       await loadWeeklySummary();
     } catch (err) {
-      alert(
-        err instanceof Error ? err.message : "Unable to delete task"
-      );
+      alert(err instanceof Error ? err.message : "Unable to delete task");
     } finally {
       setIsDeleting(false);
     }
@@ -209,9 +207,9 @@ export default function Home() {
   const weekTasks = useMemo(
     () =>
       tasks.filter(
-        (task) => getMondayKey(parseDate(task.date)) === selectedWeekKey
+        (task) => getMondayKey(parseDate(task.date)) === selectedWeekKey,
       ),
-    [tasks, selectedWeekKey]
+    [tasks, selectedWeekKey],
   );
 
   const selectedSummary = useMemo(
@@ -219,27 +217,21 @@ export default function Home() {
       weeklySummary.find(
         (item) =>
           getDateKeyInTimezone(item.weekStart, "Asia/Kolkata") ===
-          selectedWeekKey
+          selectedWeekKey,
       ),
-    [weeklySummary, selectedWeekKey]
+    [weeklySummary, selectedWeekKey],
   );
 
   const statistics = useMemo(() => {
-    const localDone = weekTasks.filter(
-      (task) => task.completed
-    ).length;
+    const localDone = weekTasks.filter((task) => task.completed).length;
 
     const localPending = weekTasks.length - localDone;
 
     const useLocal = weekTasks.length > 0 || !selectedSummary;
 
-    const done = useLocal
-      ? localDone
-      : selectedSummary.completedTasks;
+    const done = useLocal ? localDone : selectedSummary.completedTasks;
 
-    const pending = useLocal
-      ? localPending
-      : selectedSummary.openTasks;
+    const pending = useLocal ? localPending : selectedSummary.openTasks;
 
     const total = done + pending;
 
@@ -255,7 +247,7 @@ export default function Home() {
       tasks
         .filter((task) => task.date === selectedDate)
         .sort((a, b) => a.startTime.localeCompare(b.startTime)),
-    [tasks, selectedDate]
+    [tasks, selectedDate],
   );
 
   const selectedDateLabel = useMemo(() => {
@@ -300,13 +292,13 @@ export default function Home() {
 
   const changeWeek = useCallback((amount: number) => {
     setCalendarStart((current) =>
-      current ? addDays(current, amount * 7) : current
+      current ? addDays(current, amount * 7) : current,
     );
 
     setSelectedDate((current) =>
       current
         ? getLocalDateKey(addDays(parseDate(current), amount * 7))
-        : current
+        : current,
     );
   }, []);
 
@@ -342,17 +334,12 @@ export default function Home() {
         </button>
       </div>
 
-      <WeeklyStats
-        done={statistics.done}
-        pending={statistics.pending}
-      />
+      <WeeklyStats done={statistics.done} pending={statistics.pending} />
 
       <WeeklyProgress percentage={statistics.percentage} />
 
       <div className="mt-8.25 flex shrink-0 items-center justify-between">
-        <h2 className="text-[18px] font-bold">
-          {tasksHeading}
-        </h2>
+        <h2 className="text-[18px] font-bold">{tasksHeading}</h2>
 
         <button
           type="button"
