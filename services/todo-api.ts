@@ -1,7 +1,7 @@
 import { normalizeTask } from "@/lib/date-utils";
 import { ApiTodo, Task, TodoPayload, TodoStatus } from "@/types/todo";
 
-const API_URL = "https://digiaccel-learning-todo-backend.onrender.com";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export async function apiRequest<T>(
   endpoint: string,
