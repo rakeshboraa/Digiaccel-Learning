@@ -9,7 +9,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Manage What To Do",
+  title: " To Do Digiaccel Learning",
   description: "A simple to-do app",
 };
 export const viewport: Viewport = {
